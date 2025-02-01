@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "react-native-fast-image": "^8.6.3",
+    "react-native-linear-gradient": "^2.8.3",
+    "react-native-svg": "^15.11.1"
+  }
+}

@@ -5,7 +5,7 @@ const styles = StyleSheet.create({
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#f0f0f0', // Changed from '#gggg'
+      backgroundColor: '#800000', // Changed from '#gggg'
     },
     title: {
       fontSize: 20,
@@ -15,6 +15,7 @@ const styles = StyleSheet.create({
       marginVertical: 30,
       height: 1,
       width: '80%',
+      backgroundColor: '#800000'
     },
   });
   

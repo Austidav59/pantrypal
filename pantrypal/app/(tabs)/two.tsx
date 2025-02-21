@@ -32,7 +32,7 @@ export default function TabTwoScreen() {
 
   return (
     <View style={styles.containerPantryTab}>
-      <Text style={styles.title}>Pantry Inventory</Text>
+      <Text style={styles.title}>Inventory</Text>
       <FlatList
         data={inventoryData}
         renderItem={renderItem}

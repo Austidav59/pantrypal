@@ -6,16 +6,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  containerPantryTab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    padding: 20,
+  },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: 'white', // Changed to white for better visibility on gradient
+    color: 'black',
+    marginBottom: 20,
   },
   separator: {
     marginVertical: 30,
     height: 1,
     width: '80%',
-    backgroundColor: 'white' // Changed to white for visibility on gradient
+    backgroundColor: 'white'
   },
   logo: {
     width: 100,
@@ -35,7 +42,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   buttonText: {
-    color: '#8D3F3B',
+    color: '#B6655C',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -45,6 +52,41 @@ const styles = StyleSheet.create({
   signOutText: {
     color: 'white',
     fontSize: 16,
+  },
+  list: {
+    width: '100%',
+  },
+  item: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+    marginVertical: 8,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    width: '100%',
+  },
+  itemText: {
+    fontSize: 16,
+    flex: 1,
+    color: 'black', // PantryPal text color
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+  },
+  quantityButton: {
+    backgroundColor: '#8D3F3B', // PantryPal button color
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  quantityButtonText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
 });
 

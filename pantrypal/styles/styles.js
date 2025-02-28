@@ -88,6 +88,51 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  addItemContainer: {
+    flexDirection: 'row',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    marginRight: 10,
+  },
+  addButton: {
+    backgroundColor: '#8D3F3B',
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: 'center',
+  },
+  addButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  searchInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  retryButton: {
+    backgroundColor: '#8D3F3B',
+    padding: 10,
+    borderRadius: 5,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
 });
 
 export default styles;

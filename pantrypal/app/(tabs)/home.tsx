@@ -3,7 +3,7 @@ import { Image, TouchableOpacity } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import styles from '../../styles/index'; // Import your styles
+import styles from '../../styles/styles'; // Import your styles
 
 export default function TabOneScreen() {
   return (
@@ -23,10 +23,6 @@ export default function TabOneScreen() {
 
       <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>Find Recipes</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.signOutButton}>
-        <Text style={styles.signOutText}>Sign in</Text>
       </TouchableOpacity>
 
       <StatusBar style="light" />

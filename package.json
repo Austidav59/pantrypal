@@ -1,0 +1,27 @@
+{
+  "name": "pantrypal",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Austidav59/pantrypal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Austidav59/pantrypal/issues"
+  },
+  "homepage": "https://github.com/Austidav59/pantrypal#readme",
+  "description": "",
+  "dependencies": {
+    "expo": "^52.0.37"
+  },
+  "devDependencies": {
+    "@types/react": "~18.3.12",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,30 +1,42 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const path = require("path");
-const mealRoutes = require("./routes/mealRoutes");
-const pantryRoutes = require("./routes/pantryRoutes");
-require("dotenv").config();
 
 const app = express();
 app.use(express.json());
 
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.error(err));
+// Simple in-memory storage for pantry items
+let pantryItems = [];
 
-// API routes
-app.use("/api/meals", mealRoutes);
-app.use("/api/pantry", pantryRoutes);
+// Mock API routes
+app.use("/api/meals", (req, res) => {
+  // Add mock meal handling if needed
+  res.json([]);
+});
+
+app.use("/api/pantry", (req, res, next) => {
+  // Simple mock pantry routes
+  switch (req.method) {
+    case 'GET':
+      res.json(pantryItems);
+      break;
+    case 'POST':
+      const newItem = {
+        id: Date.now().toString(),
+        ...req.body,
+        quantity: 1
+      };
+      pantryItems.push(newItem);
+      res.json(newItem);
+      break;
+    default:
+      next();
+  }
+});
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'client/build')));
 
-// The "catchall" handler: for any request that doesn't
-// match one above, send back React's index.html file.
+// Catchall handler
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });

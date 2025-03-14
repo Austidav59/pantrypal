@@ -1,71 +1,61 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { fetchIngredients, addIngredient, updateIngredientQuantity } from '../../backend/api/api';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
+import { SwipeListView } from 'react-native-swipe-list-view';
 import styles from '../../styles/styles';
+import database from "../../backend/app";
 
 export default function PantryScreen() {
   const [inventory, setInventory] = useState([]);
   const [newItemName, setNewItemName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const navigation = useNavigation();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
   useEffect(() => {
-    loadInventory();
+    if (inventory.length === 0) {
+      setIsModalVisible(true);
+    }
   }, []);
 
-  const loadInventory = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await fetchIngredients();
-      setInventory(data);
-      if (data.length === 0) {
-        promptForIngredients();
-      }
-    } catch (error) {
-      console.error('Failed to load inventory:', error);
-      setError('Failed to load inventory. Please try again.');
-      promptForIngredients();
-    } finally {
-      setIsLoading(false);
+  const addNewItem = (itemName = newItemName.trim()) => {
+    if (itemName) {
+      const newItem = {
+        id: Date.now().toString(),
+        name: itemName,
+        quantity: 1
+      };
+      setInventory(prev => [...prev, newItem]);
+      setNewItemName('');
+      setIsModalVisible(false);
+      setEditingItem(null);
     }
   };
 
-  const promptForIngredients = () => {
+  const adjustQuantity = (id, amount) => {
+    setInventory(prev => prev.map(item => 
+      item.id === id ? {...item, quantity: Math.max(0, item.quantity + amount)} : item
+    ));
+  };
+
+  const deleteItem = (id) => {
     Alert.alert(
-      "No Ingredients Found",
-      "Would you like to add some ingredients to your pantry?",
+      "Delete Item",
+      "Are you sure you want to delete this item?",
       [
-        { text: "No", style: "cancel" },
-        { text: "Yes", onPress: () => setNewItemName('') } // Focus on add ingredient input
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          onPress: () => setInventory(prev => prev.filter(item => item.id !== id)),
+          style: "destructive"
+        }
       ]
     );
   };
 
-  const addNewItem = async () => {
-    if (newItemName.trim()) {
-      try {
-        const newItem = await addIngredient(newItemName.trim());
-        setInventory(prev => [...prev, newItem]);
-        setNewItemName('');
-      } catch (error) {
-        console.error('Failed to add new item:', error);
-        Alert.alert("Error", "Failed to add new item. Please try again.");
-      }
-    }
-  };
-
-  const adjustQuantity = async (id, amount) => {
-    try {
-      const updatedItem = await updateIngredientQuantity(id, amount);
-      setInventory(prev => prev.map(item => item.id === id ? updatedItem : item));
-    } catch (error) {
-      console.error('Failed to update quantity:', error);
-      Alert.alert("Error", "Failed to update quantity. Please try again.");
-    }
+  const editItem = (item) => {
+    setEditingItem(item);
+    setNewItemName(item.name);
+    setIsModalVisible(true);
   };
 
   const renderItem = ({ item }) => (
@@ -83,28 +73,26 @@ export default function PantryScreen() {
     </View>
   );
 
+  const renderHiddenItem = ({ item }) => (
+    <View style={styles.rowBack}>
+      <TouchableOpacity
+        style={[styles.backRightBtn, styles.backRightBtnLeft]}
+        onPress={() => editItem(item)}
+      >
+        <Text style={styles.backTextWhite}>Edit</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.backRightBtn, styles.backRightBtnRight]}
+        onPress={() => deleteItem(item.id)}
+      >
+        <Text style={styles.backTextWhite}>Delete</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   const filteredInventory = inventory.filter(item => 
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  if (isLoading) {
-    return (
-      <View style={styles.containerPantryTab}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.containerPantryTab}>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadInventory}>
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.containerPantryTab}>
@@ -119,12 +107,18 @@ export default function PantryScreen() {
 
       {inventory.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>Your pantry is empty. Add some ingredients!</Text>
+          <Text style={styles.emptyStateText}>Your pantry is empty.</Text>
+          <TouchableOpacity style={styles.addFirstItemButton} onPress={() => setIsModalVisible(true)}>
+            <Text style={styles.addFirstItemButtonText}>Add Your First Ingredient</Text>
+          </TouchableOpacity>
         </View>
       ) : (
-        <FlatList
+        <SwipeListView
           data={filteredInventory}
           renderItem={renderItem}
+          renderHiddenItem={renderHiddenItem}
+          rightOpenValue={-120}
+          disableRightSwipe
           keyExtractor={item => item.id}
           style={styles.list}
         />
@@ -137,10 +131,55 @@ export default function PantryScreen() {
           value={newItemName}
           onChangeText={setNewItemName}
         />
-        <TouchableOpacity style={styles.addButton} onPress={addNewItem}>
+        <TouchableOpacity style={styles.addButton} onPress={() => addNewItem()}>
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={isModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setIsModalVisible(false);
+          setEditingItem(null);
+          setNewItemName('');
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              {editingItem ? 'Edit Ingredient' : 'Add Your First Ingredient'}
+            </Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter ingredient name"
+              value={newItemName}
+              onChangeText={setNewItemName}
+            />
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalCancelButton]}
+                onPress={() => {
+                  setIsModalVisible(false);
+                  setEditingItem(null);
+                  setNewItemName('');
+                }}
+              >
+                <Text style={[styles.modalButtonText, styles.modalCancelButtonText]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalAddButton]}
+                onPress={() => addNewItem()}
+              >
+                <Text style={[styles.modalButtonText, styles.modalAddButtonText]}>
+                  {editingItem ? 'Save' : 'Add'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

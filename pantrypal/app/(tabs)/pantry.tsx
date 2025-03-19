@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
+import axios from 'axios';
 import styles from '../../styles/styles';
-import database from "../../backend/app";
+
+const API_BASE_URL = "http://localhost:5000"; // Replace localhost with your server's IP if needed
 
 export default function PantryScreen() {
   const [inventory, setInventory] = useState([]);
@@ -11,41 +13,74 @@ export default function PantryScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
+  // Fetch inventory on component mount
   useEffect(() => {
-    if (inventory.length === 0) {
-      setIsModalVisible(true);
-    }
+    loadInventory();
   }, []);
 
-  const addNewItem = (itemName = newItemName.trim()) => {
-    if (itemName) {
-      const newItem = {
-        id: Date.now().toString(),
-        name: itemName,
-        quantity: 1
-      };
-      setInventory(prev => [...prev, newItem]);
+  const loadInventory = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/items`);
+      setInventory(response.data);
+      if (response.data.length === 0) setIsModalVisible(true);
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Failed to load inventory.");
+    }
+  };
+
+  const addNewItemToDB = async () => {
+    if (!newItemName.trim()) return;
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/items`, { name: newItemName.trim(), quantity: 1 });
+      setInventory(prev => [...prev, response.data as InventoryItem]);
       setNewItemName('');
       setIsModalVisible(false);
       setEditingItem(null);
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Failed to add item.");
     }
   };
 
-  const adjustQuantity = (id, amount) => {
-    setInventory(prev => prev.map(item => 
-      item.id === id ? {...item, quantity: Math.max(0, item.quantity + amount)} : item
-    ));
+  const adjustQuantity = async (id, amount) => {
+    try {
+      const itemToUpdate = inventory.find(item => item._id === id);
+      if (itemToUpdate) {
+        const updatedQuantity = Math.max(0, itemToUpdate.quantity + amount);
+        await axios.put(`${API_BASE_URL}/items/${id}`, { quantity: updatedQuantity });
+        setInventory(prev =>
+          prev.map(item =>
+            item._id === id ? { ...item, quantity: updatedQuantity } : item
+          )
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Failed to update quantity.");
+    }
   };
 
-  const deleteItem = (id) => {
+  const deleteItemFromDB = async (id) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/items/${id}`);
+      setInventory(prev => prev.filter(item => item._id !== id));
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Failed to delete item.");
+    }
+  };
+
+  const deleteItemWithConfirmation = (id) => {
     Alert.alert(
       "Delete Item",
       "Are you sure you want to delete this item?",
       [
         { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          onPress: () => setInventory(prev => prev.filter(item => item.id !== id)),
+        {
+          text: "Delete",
+          onPress: () => deleteItemFromDB(id),
           style: "destructive"
         }
       ]
@@ -62,11 +97,11 @@ export default function PantryScreen() {
     <View style={styles.item}>
       <Text style={styles.itemText}>{item.name}</Text>
       <View style={styles.quantityContainer}>
-        <TouchableOpacity style={styles.quantityButton} onPress={() => adjustQuantity(item.id, -1)}>
+        <TouchableOpacity style={styles.quantityButton} onPress={() => adjustQuantity(item._id, -1)}>
           <Text style={styles.quantityButtonText}>-</Text>
         </TouchableOpacity>
         <Text style={styles.quantityText}>{item.quantity}</Text>
-        <TouchableOpacity style={styles.quantityButton} onPress={() => adjustQuantity(item.id, 1)}>
+        <TouchableOpacity style={styles.quantityButton} onPress={() => adjustQuantity(item._id, 1)}>
           <Text style={styles.quantityButtonText}>+</Text>
         </TouchableOpacity>
       </View>
@@ -83,21 +118,21 @@ export default function PantryScreen() {
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.backRightBtn, styles.backRightBtnRight]}
-        onPress={() => deleteItem(item.id)}
+        onPress={() => deleteItemWithConfirmation(item._id)}
       >
         <Text style={styles.backTextWhite}>Delete</Text>
       </TouchableOpacity>
     </View>
   );
 
-  const filteredInventory = inventory.filter(item => 
+  const filteredInventory = inventory.filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <View style={styles.containerPantryTab}>
       <Text style={styles.title}>My Pantry</Text>
-      
+
       <TextInput
         style={styles.searchInput}
         placeholder="Search ingredients"
@@ -119,7 +154,7 @@ export default function PantryScreen() {
           renderHiddenItem={renderHiddenItem}
           rightOpenValue={-120}
           disableRightSwipe
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item._id}
           style={styles.list}
         />
       )}
@@ -131,11 +166,12 @@ export default function PantryScreen() {
           value={newItemName}
           onChangeText={setNewItemName}
         />
-        <TouchableOpacity style={styles.addButton} onPress={() => addNewItem()}>
+        <TouchableOpacity style={styles.addButton} onPress={() => addNewItemToDB()}>
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
       </View>
 
+      {/* Modal for adding/editing items */}
       <Modal
         visible={isModalVisible}
         transparent
@@ -170,7 +206,7 @@ export default function PantryScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalAddButton]}
-                onPress={() => addNewItem()}
+                onPress={() => addNewItemToDB()}
               >
                 <Text style={[styles.modalButtonText, styles.modalAddButtonText]}>
                   {editingItem ? 'Save' : 'Add'}

@@ -1,10 +1,12 @@
+//pantry.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import axios from 'axios';
 import styles from '../../styles/styles';
+import { API_BASE_URL, ATLAS_URI } from '@env';
 
-const API_BASE_URL = "http://localhost:5000"; // Replace localhost with your server's IP if needed
+
 
 export default function PantryScreen() {
   const [inventory, setInventory] = useState([]);
